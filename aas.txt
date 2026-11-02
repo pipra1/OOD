@@ -1,0 +1,170 @@
+public class Main {
+  public static void main(String[] args) {
+    // 1. Singleton Pattern
+    System.out.println("Singleton Pattern");
+    FarmDataManager farmer1 = FarmDataManager.getInstance();
+    FarmDataManager farmer2 = FarmDataManager.getInstance();
+    System.out.println("Same instance: " + (farmer1 == farmer2));
+    farmer1.saveData("Green Farm");
+  
+    // 2. Factory Pattern
+    System.out.println("\nFactory Pattern");
+    Sensor soil = SensorFactory.createSensor("soil");
+    System.out.println("Moisture: " + soil.readValue());
+
+    Sensor temp = SensorFactory.createSensor("temperature");
+    System.out.println("Temperature: " + temp.readValue());
+
+    try {
+        SensorFactory.createSensor("humidity");
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
+
+    // 3. Observer Pattern
+    System.out.println("\nObserver Pattern");
+
+    AlertPublisher publisher = new AlertPublisher();
+    FarmerNotifier farmer = new FarmerNotifier();
+    FarmDashboard dashboard = new FarmDashboard();
+
+    publisher.subscribe(farmer);
+    publisher.subscribe(dashboard);
+
+    publisher.publish("Farm Monitoring Started");
+    publisher.unsubscribe(dashboard);
+    publisher.publish("Dashboard Unscribed");
+  
+    // 4. Strategy Pattern
+    System.out.println("\nStrategy Pattern");
+    double moisture = 30;
+    boolean rainExpected = false;
+    // Normal Strategy
+    IrrigationStrategy normal = new NormalIrrigationStrategy();
+    System.out.print("Normal Strategy:");
+    System.out.println(normal.shouldIrrigate(moisture, rainExpected)
+      ? "Irrigation ON" : "Irrigation OFF");
+
+    // Water Saving Strategy
+    IrrigationStrategy saving = new WaterSavingStrategy();
+    System.out.print("Water Saving Strategy:");
+    System.out.println(saving.shouldIrrigate(moisture, rainExpected)
+      ? "Irrigation ON" : "Irrigation OFF");
+  }
+}
+
+
+
+
+// Singleton File
+
+public class FarmDataManager {
+  private static final FarmDataManager instance = new FarmDataManager();
+
+  private FarmDataManager() {}
+
+  public static FarmDataManager getInstance() {
+    return instance;
+  }
+
+  public void saveData(String data) {
+    System.out.println("Saved: " + data);
+  }
+}
+
+
+
+
+
+// Factory File File
+public interface Sensor {
+  double readValue();
+}
+
+class SoilMoistureSensor implements Sensor {
+  public double readValue() {
+    return 30;
+  }
+}
+
+class TemperatureSensor implements Sensor {
+  public double readValue() {
+    return 28;
+  }
+}
+
+class SensorFactory {
+  public static Sensor createSensor(String type) {
+    if(type.equalsIgnoreCase("soil"))
+      return new SoilMoistureSensor();
+
+    if(type.equalsIgnoreCase("temperature"))
+      return new TemperatureSensor();
+
+    throw new IllegalArgumentException (
+      "Invalid sensor type"
+    );
+  }
+}
+
+
+
+
+
+// Observer File
+import java.util.*;
+
+public interface AlertObserver {
+  void update(String message);
+}
+
+class FarmerNotifier implements AlertObserver {
+  public void update(String message) {
+    System.out.println("Farmer: " + message);
+  }
+}
+
+class FarmDashboard implements AlertObserver {
+  public void update(String message) {
+    System.out.println("Dashboard: " + message);
+  }
+}
+
+class AlertPublisher {
+  private List<AlertObserver> observers = new ArrayList<>();
+
+  public void subscribe(AlertObserver o) {
+    observers.add(o);
+  }
+
+  public void unsubscribe(AlertObserver o) {
+    observers.remove(o);
+  }
+
+  public void publish(String message) {
+    for (AlertObserver o : observers) {
+      o.update(message);
+    }
+  }
+
+}
+
+
+
+
+// Strategy File
+public interface IrrigationStrategy {
+  boolean shouldIrrigate(double moisture, boolean  rain);
+}
+
+class NormalIrrigationStrategy implements IrrigationStrategy {
+  public boolean shouldIrrigate(double moisture, boolean rain) {
+    return moisture < 40 && !rain;
+  }
+}
+
+class WaterSavingStrategy implements IrrigationStrategy {
+  public boolean shouldIrrigate(double  moisture, boolean rain) {
+    return moisture < 25 && !rain;
+  }
+}

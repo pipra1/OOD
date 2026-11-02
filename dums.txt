@@ -1,0 +1,164 @@
+public class Main {
+  public static void main(String[] args) {
+    // 1. Singleton Pattern
+    System.out.println("\nSingleton Pattern");
+    UrbanDatabase db1 = UrbanDatabase.getInstance();
+    UrbanDatabase db2 = UrbanDatabase.getInstance();
+
+    System.out.println("Same instance: " + (db1 == db2));
+    db1.saveComplaint("C101");
+
+    // 2. Factory Pattern
+    System.out.println("\nFactory Pattern");
+    UrbanService waste = UrbanServiceFactory.creatService("waste");
+    UrbanService traffic = UrbanServiceFactory.creatService("traffic");
+    UrbanService emergency = UrbanServiceFactory.creatService("emergency");
+
+    System.out.println(waste.assign());
+    System.out.println(traffic.assign());
+    System.out.println(emergency.assign());
+
+    try {
+        UrbanServiceFactory.creatService("test");
+    } catch (IllegalArgumentException e) {
+      System.out.println("Invalid service");
+    }
+
+    // 3. Observer Pattern
+    System.out.println("\nObserver Pattern");
+
+    ComplaintObserver citizen = new CitizenNotifier();
+    ComplaintObserver government = new GovernmentDashboard();
+    StatusPublisher publisher = new StatusPublisher();
+
+    publisher.subscribe(citizen);
+    publisher.subscribe(government);
+    publisher.publish("Broadcast message");
+    publisher.unsubscribe(government);
+    publisher.publish("Government removed");
+
+    // 4. Strategy Pattern
+    System.out.println("\nStrategy Pattern");
+
+    RouteStrategy shortest = new ShortestRouteStrategy();
+    RouteStrategy fastest = new FastestRouteStrategy();
+  
+    System.out.println("Shortest Route: " + shortest.chooseRoute());
+    System.out.println("Fastest Route: " + fastest.chooseRoute());
+  }
+}
+
+
+
+
+
+// Singleton File
+
+class UrbanDatabase {
+  private static final UrbanDatabase instance = new UrbanDatabase();
+
+  private UrbanDatabase() {}
+
+  public static UrbanDatabase getInstance() {
+    return instance;
+  }
+
+  public void saveComplaint(String id) {
+    System.out.println("Complaint saved: " + id);
+  }
+}
+
+
+
+
+
+
+// Factory File
+
+interface UrbanService {
+  String assign();
+}
+
+class WaterService implements UrbanService {
+  public String assign() { return "Waste team assigned"; }
+}
+
+class TrafficService implements UrbanService {
+  public String assign() { return "Traffic team assigned"; }
+}
+
+class EmergencyService implements UrbanService {
+  public String assign() { return "Emergency team assigned"; }
+}
+
+class UrbanServiceFactory {
+  public static UrbanService creatService (String type) {
+    if(type.equalsIgnoreCase("waste")) return new WaterService();
+    if(type.equalsIgnoreCase("traffic")) return new TrafficService();
+    if(type.equalsIgnoreCase("emergency")) return new EmergencyService();
+
+    throw new IllegalArgumentException("Invalid service type");
+  }
+}
+
+
+
+
+
+// Observer File
+
+import java.util.ArrayList;
+import java.util.List;
+
+interface ComplaintObserver {
+  void update(String message);
+}
+
+class CitizenNotifier implements ComplaintObserver {
+  public void update(String message) {
+    System.out.println("Citizen: " + message);
+  }
+}
+
+class GovernmentDashboard implements ComplaintObserver {
+  public void update(String message) {
+    System.out.println("Dashboard: " + message);
+  }
+}
+
+class StatusPublisher {
+  private List<ComplaintObserver> observers = new ArrayList<>();
+
+  public void subscribe(ComplaintObserver o) {
+    observers.add(o);
+  }
+  public void unsubscribe(ComplaintObserver o) {
+    observers.remove(o);
+  }
+  public void publish(String message) {
+    for (ComplaintObserver o : observers) {
+      o.update(message);
+    }
+  }
+}
+
+
+
+
+// Strategy File
+
+interface RouteStrategy {
+  String chooseRoute();
+}
+
+class ShortestRouteStrategy implements RouteStrategy {
+  public String chooseRoute () {
+    return "Route A (5km)";
+  }
+}
+
+class FastestRouteStrategy implements RouteStrategy {
+  public String chooseRoute() {
+    return "Route B (20 minutes)";
+  }
+}
